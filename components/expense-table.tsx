@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { format } from "date-fns"
 import { ArrowUpDown, Copy, MoreHorizontal, Trash2 } from "lucide-react"
 
@@ -27,48 +27,23 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { getExpenses, deleteExpenses, duplicateExpenses } from "@/app/actions/expense-actions"
+import { deleteExpenses, duplicateExpenses, getExpenses } from "@/app/actions/expense-actions"
 import { useToast } from "@/hooks/use-toast"
 import { Expense } from "@/lib/prisma-fe-types"
 
-export function ExpenseTable() {
+interface ExpenseTableProps {
+  initialExpenses: Expense[]
+}
+
+export function ExpenseTable({ initialExpenses }: ExpenseTableProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [typeFilter, setTypeFilter] = useState("all")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc")
   const [selectedRows, setSelectedRows] = useState<string[]>([])
-  const [expenses, setExpenses] = useState<Expense[]>([])
+  const [expenses, setExpenses] = useState<Expense[]>(initialExpenses)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
-
-  // Fetch expenses
-  useEffect(() => {
-    async function fetchExpenses() {
-      setIsLoading(true)
-      try {
-        const result = await getExpenses()
-        if (result.success) {
-          setExpenses(result.data)
-        } else {
-          toast({
-            title: "Error",
-            description: result.error || "Failed to fetch expenses",
-            variant: "destructive",
-          })
-        }
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "An unexpected error occurred",
-          variant: "destructive",
-        })
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchExpenses()
-  }, [toast])
 
   // Filter and sort data
   const filteredData = expenses

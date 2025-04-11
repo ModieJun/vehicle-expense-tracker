@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation"
 import { ExpenseForm } from "@/components/expense-form"
 import { ExpenseOverview } from "@/components/expense-overview"
 import { ExpenseTable } from "@/components/expense-table"
@@ -14,16 +13,20 @@ import {
 } from "@/components/ui/dialog"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { prisma } from "@/lib/prisma"
+import { getExpenses } from "@/app/actions/expense-actions"
 
 export default async function Home() {
-  // Check if the database is set up
+
   try {
     await prisma.expense.count()
+  
   } catch (error) {
     // If there's an error, redirect to the setup page
     console.log(error)
-    redirect("/setup")
   }
+
+  const expensesResult = await getExpenses()
+  const expenses = expensesResult.success && expensesResult.data ? expensesResult.data : []
 
   return (
     <div className="min-h-screen bg-background">
@@ -54,10 +57,10 @@ export default async function Home() {
             </Dialog>
           </div>
           <TabsContent value="overview" className="space-y-6">
-            <ExpenseOverview />
+            <ExpenseOverview initialExpenses={expenses} />
           </TabsContent>
           <TabsContent value="expenses" className="space-y-6">
-            <ExpenseTable />
+            <ExpenseTable initialExpenses={expenses} />
           </TabsContent>
         </Tabs>
       </main>

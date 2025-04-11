@@ -1,7 +1,7 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { toClientExpenses } from "@/lib/prisma-fe-types"
+import { toClientExpense, toClientExpenses } from "@/lib/prisma-fe-types"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
@@ -19,7 +19,8 @@ export type ExpenseFormData = z.infer<typeof expenseSchema>
 export async function createExpense(data: ExpenseFormData) {
   try {
     const validatedData = expenseSchema.parse(data)
-
+    console.log(data)
+    console.log("Data Validated")
     const expense = await prisma.expense.create({
       data: {
         amount: validatedData.amount,
@@ -30,7 +31,7 @@ export async function createExpense(data: ExpenseFormData) {
     })
 
     revalidatePath("/")
-    return { success: true, data: expense }
+    return { success: true, data: toClientExpense(expense) }
   } catch (error) {
     console.error("Failed to create expense:", error)
     return { success: false, error: "Failed to create expense" }
