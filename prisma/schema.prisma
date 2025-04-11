@@ -11,13 +11,13 @@ datasource db {
 }
 
 model Expense {
-  id          String   @id @default(uuid())
-  amount      Decimal  @db.Decimal(10, 2)
+  id          String      @id @default(uuid())
+  amount      Decimal     @db.Decimal(10, 2)
   type        ExpenseType
-  date        DateTime @db.Date
+  date        DateTime    @db.Date
   description String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @default(now()) @updatedAt @map("updated_at")
 
   @@map("expenses")
 }

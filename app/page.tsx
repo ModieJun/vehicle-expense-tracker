@@ -21,6 +21,7 @@ export default async function Home() {
     await prisma.expense.count()
   } catch (error) {
     // If there's an error, redirect to the setup page
+    console.log(error)
     redirect("/setup")
   }
 

@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { getExpenses, deleteExpenses, duplicateExpenses } from "@/app/actions/expense-actions"
 import { useToast } from "@/hooks/use-toast"
-import type { Expense } from "@prisma/client"
+import { Expense } from "@/lib/prisma-fe-types"
 
 export function ExpenseTable() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -289,8 +289,7 @@ export function ExpenseTable() {
             <TableRow>
               <TableHead className="w-[40px]">
                 <Checkbox
-                  checked={selectedRows.length === filteredData.length && filteredData.length > 0}
-                  indeterminate={selectedRows.length > 0 && selectedRows.length < filteredData.length}
+                  data-state={selectedRows.length === filteredData.length && filteredData.length > 0?"checked":"indeterminate"}
                   onCheckedChange={toggleSelectAll}
                   aria-label="Select all"
                   disabled={isLoading || filteredData.length === 0}

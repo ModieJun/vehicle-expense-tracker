@@ -1,6 +1,7 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
+import { toClientExpenses } from "@/lib/prisma-fe-types"
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
@@ -44,8 +45,8 @@ export async function getExpenses() {
         date: "desc",
       },
     })
-
-    return { success: true, data: expenses }
+    const clientExpenses = toClientExpenses(expenses)
+    return { success: true, data: clientExpenses }
   } catch (error) {
     console.error("Failed to fetch expenses:", error)
     return { success: false, error: "Failed to fetch expenses" }

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { getExpenses } from "@/app/actions/expense-actions"
 import { useToast } from "@/hooks/use-toast"
-import type { Expense } from "@prisma/client"
+import { Expense } from "@/lib/prisma-fe-types"
 
 export function ExpenseOverview() {
   const [mounted, setMounted] = useState(false)
@@ -21,7 +21,7 @@ export function ExpenseOverview() {
       setIsLoading(true)
       try {
         const result = await getExpenses()
-        if (result.success) {
+        if (result.success && result.data) {
           setExpenses(result.data)
         } else {
           toast({

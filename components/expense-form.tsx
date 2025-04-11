@@ -35,8 +35,8 @@ export function ExpenseForm({ onSuccess }: ExpenseFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      amount: undefined,
-      type: undefined,
+      amount: 0.00,
+      type: "parking",
       date: new Date(),
       description: "",
     },
