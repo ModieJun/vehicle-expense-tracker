@@ -5,20 +5,58 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useToast } from "@/hooks/use-toast"
+import { toast, useToast } from "@/hooks/use-toast"
 import { Expense } from "@/lib/prisma-fe-types"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
+import { getExpenses } from "@/app/actions/expense-actions"
 
-interface ExpenseOverviewProps {
-  initialExpenses: Expense[]
-}
 
-export function ExpenseOverview({ initialExpenses }: ExpenseOverviewProps) {
-  const [expenses, setExpenses] = useState<Expense[]>(initialExpenses)
+export function ExpenseOverview() {
+  const [mounted, setMounted] = useState(false)
+  const [expenses, setExpenses] = useState<Expense[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [showMonthly, setShowMonthly] = useState(false)
 
+
+    // Fetch expenses
+    useEffect(() => {
+      async function fetchExpenses() {
+        setIsLoading(true)
+        try {
+          const result = await getExpenses()
+          if (result.success && result.data) {
+            setExpenses(result.data)
+          } else {
+            toast({
+              title: "Error",
+              description: result.error || "Failed to fetch expenses",
+              variant: "destructive",
+            })
+          }
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "An unexpected error occurred",
+            variant: "destructive",
+          })
+        } finally {
+          setIsLoading(false)
+        }
+      }
+  
+      fetchExpenses()
+    }, [toast])
+  
+    // Ensure component is mounted before rendering charts (for SSR compatibility)
+    useEffect(() => {
+      setMounted(true)
+    }, [])
+  
+    if (!mounted) {
+      return null
+    }
+    
   // Calculate total expenses
   const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0)
 
