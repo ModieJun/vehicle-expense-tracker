@@ -2,31 +2,21 @@ import { ExpenseForm } from "@/components/expense-form"
 import { ExpenseOverview } from "@/components/expense-overview"
 import { ExpenseTable } from "@/components/expense-table"
 import { ModeToggle } from "@/components/mode-toggle"
-import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import { SpeedInsights } from "@vercel/speed-insights/next"
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { prisma } from "@/lib/prisma"
-import { getExpenses } from "@/app/actions/expense-actions"
+import { Toaster } from "@/components/ui/toaster"
 
 export default async function Home() {
 
   try {
     await prisma.expense.count()
-  
+
   } catch (error) {
     // If there's an error, redirect to the setup page
     console.log(error)
   }
-
-  const expensesResult = await getExpenses()
-  const expenses = expensesResult.success && expensesResult.data ? expensesResult.data : []
 
   return (
     <div className="min-h-screen bg-background">
@@ -43,26 +33,16 @@ export default async function Home() {
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="expenses">Expenses</TabsTrigger>
             </TabsList>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button>Add Expense</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add New Expense</DialogTitle>
-                  <DialogDescription>Enter the details of your vehicle expense below.</DialogDescription>
-                </DialogHeader>
-                <ExpenseForm />
-              </DialogContent>
-            </Dialog>
+            <ExpenseForm />
           </div>
           <TabsContent value="overview" className="space-y-6">
-            <ExpenseOverview initialExpenses={expenses} />
+            <ExpenseOverview/>
           </TabsContent>
           <TabsContent value="expenses" className="space-y-6">
-            <ExpenseTable initialExpenses={expenses} />
+            <ExpenseTable/>
           </TabsContent>
         </Tabs>
+        <Toaster></Toaster>
       </main>
     </div>
   )

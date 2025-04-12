@@ -5,21 +5,58 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useToast } from "@/hooks/use-toast"
+import { toast, useToast } from "@/hooks/use-toast"
 import { Expense } from "@/lib/prisma-fe-types"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
+import { getExpenses } from "@/app/actions/expense-actions"
 
-interface ExpenseOverviewProps {
-  initialExpenses: Expense[]
-}
 
-export function ExpenseOverview({ initialExpenses }: ExpenseOverviewProps) {
-  const [expenses, setExpenses] = useState<Expense[]>(initialExpenses)
+export function ExpenseOverview() {
+  const [mounted, setMounted] = useState(false)
+  const [expenses, setExpenses] = useState<Expense[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [showMonthly, setShowMonthly] = useState(false)
-  const { toast } = useToast()
 
+
+    // Fetch expenses
+    useEffect(() => {
+      async function fetchExpenses() {
+        setIsLoading(true)
+        try {
+          const result = await getExpenses()
+          if (result.success && result.data) {
+            setExpenses(result.data)
+          } else {
+            toast({
+              title: "Error",
+              description: result.error || "Failed to fetch expenses",
+              variant: "destructive",
+            })
+          }
+        } catch (error) {
+          toast({
+            title: "Error",
+            description: "An unexpected error occurred",
+            variant: "destructive",
+          })
+        } finally {
+          setIsLoading(false)
+        }
+      }
+  
+      fetchExpenses()
+    }, [toast])
+  
+    // Ensure component is mounted before rendering charts (for SSR compatibility)
+    useEffect(() => {
+      setMounted(true)
+    }, [])
+  
+    if (!mounted) {
+      return null
+    }
+    
   // Calculate total expenses
   const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0)
 
@@ -275,9 +312,17 @@ export function ExpenseOverview({ initialExpenses }: ExpenseOverviewProps) {
                 <div className="flex h-full items-center justify-center">Loading data...</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyData}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                  <BarChart
+                    data={monthlyData}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+                  >
+                    <XAxis 
+                      dataKey="name" 
+                      label={{ value: showMonthly ? 'Day' : 'Month', position: 'insideBottom', offset: -15 }}
+                    />
+                    <YAxis 
+                      label={{ value: 'HKD', angle: -90, position: 'insideLeft' }}
+                    />
                     <Bar dataKey="amount" fill="#2E5374" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -288,9 +333,17 @@ export function ExpenseOverview({ initialExpenses }: ExpenseOverviewProps) {
                 <div className="flex h-full items-center justify-center">Loading data...</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={getParkingData()}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                  <BarChart
+                    data={getParkingData()}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+                  >
+                    <XAxis 
+                      dataKey="name" 
+                      label={{ value: showMonthly ? 'Day' : 'Month', position: 'insideBottom', offset: -15 }}
+                    />
+                    <YAxis 
+                      label={{ value: 'HKD', angle: -90, position: 'insideLeft' }}
+                    />
                     <Bar dataKey="amount" fill="#1C4E80" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -301,9 +354,17 @@ export function ExpenseOverview({ initialExpenses }: ExpenseOverviewProps) {
                 <div className="flex h-full items-center justify-center">Loading data...</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={getViolationsData()}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                  <BarChart
+                    data={getViolationsData()}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+                  >
+                    <XAxis 
+                      dataKey="name" 
+                      label={{ value: showMonthly ? 'Day' : 'Month', position: 'insideBottom', offset: -15 }}
+                    />
+                    <YAxis 
+                      label={{ value: 'HKD', angle: -90, position: 'insideLeft' }}
+                    />
                     <Bar dataKey="amount" fill="#9B2226" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -314,9 +375,17 @@ export function ExpenseOverview({ initialExpenses }: ExpenseOverviewProps) {
                 <div className="flex h-full items-center justify-center">Loading data...</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={getGasolineData()}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                  <BarChart
+                    data={getGasolineData()}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+                  >
+                    <XAxis 
+                      dataKey="name" 
+                      label={{ value: showMonthly ? 'Day' : 'Month', position: 'insideBottom', offset: -15 }}
+                    />
+                    <YAxis 
+                      label={{ value: 'HKD', angle: -90, position: 'insideLeft' }}
+                    />
                     <Bar dataKey="amount" fill="#AE8F35" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
