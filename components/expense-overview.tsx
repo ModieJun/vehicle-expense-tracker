@@ -18,7 +18,6 @@ export function ExpenseOverview({ initialExpenses }: ExpenseOverviewProps) {
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses)
   const [isLoading, setIsLoading] = useState(false)
   const [showMonthly, setShowMonthly] = useState(false)
-  const { toast } = useToast()
 
   // Calculate total expenses
   const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0)
