@@ -2,7 +2,7 @@ import { ExpenseForm } from "@/components/expense-form"
 import { ExpenseOverview } from "@/components/expense-overview"
 import { ExpenseTable } from "@/components/expense-table"
 import { ModeToggle } from "@/components/mode-toggle"
-import { Button } from "@/components/ui/button"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { prisma } from "@/lib/prisma"
