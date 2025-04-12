@@ -275,9 +275,17 @@ export function ExpenseOverview({ initialExpenses }: ExpenseOverviewProps) {
                 <div className="flex h-full items-center justify-center">Loading data...</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={monthlyData}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                  <BarChart
+                    data={monthlyData}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+                  >
+                    <XAxis 
+                      dataKey="name" 
+                      label={{ value: showMonthly ? 'Day' : 'Month', position: 'insideBottom', offset: -15 }}
+                    />
+                    <YAxis 
+                      label={{ value: 'HKD', angle: -90, position: 'insideLeft' }}
+                    />
                     <Bar dataKey="amount" fill="#2E5374" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -288,9 +296,17 @@ export function ExpenseOverview({ initialExpenses }: ExpenseOverviewProps) {
                 <div className="flex h-full items-center justify-center">Loading data...</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={getParkingData()}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                  <BarChart
+                    data={getParkingData()}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+                  >
+                    <XAxis 
+                      dataKey="name" 
+                      label={{ value: showMonthly ? 'Day' : 'Month', position: 'insideBottom', offset: -15 }}
+                    />
+                    <YAxis 
+                      label={{ value: 'HKD', angle: -90, position: 'insideLeft' }}
+                    />
                     <Bar dataKey="amount" fill="#1C4E80" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -301,9 +317,17 @@ export function ExpenseOverview({ initialExpenses }: ExpenseOverviewProps) {
                 <div className="flex h-full items-center justify-center">Loading data...</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={getViolationsData()}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                  <BarChart
+                    data={getViolationsData()}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+                  >
+                    <XAxis 
+                      dataKey="name" 
+                      label={{ value: showMonthly ? 'Day' : 'Month', position: 'insideBottom', offset: -15 }}
+                    />
+                    <YAxis 
+                      label={{ value: 'HKD', angle: -90, position: 'insideLeft' }}
+                    />
                     <Bar dataKey="amount" fill="#9B2226" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -314,9 +338,17 @@ export function ExpenseOverview({ initialExpenses }: ExpenseOverviewProps) {
                 <div className="flex h-full items-center justify-center">Loading data...</div>
               ) : (
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={getGasolineData()}>
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                  <BarChart
+                    data={getGasolineData()}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+                  >
+                    <XAxis 
+                      dataKey="name" 
+                      label={{ value: showMonthly ? 'Day' : 'Month', position: 'insideBottom', offset: -15 }}
+                    />
+                    <YAxis 
+                      label={{ value: 'HKD', angle: -90, position: 'insideLeft' }}
+                    />
                     <Bar dataKey="amount" fill="#AE8F35" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
