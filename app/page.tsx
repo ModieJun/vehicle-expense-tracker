@@ -27,6 +27,7 @@ export default async function Home() {
         </div>
       </header>
       <main className="container py-6">
+      <SpeedInsights/>
         <Tabs defaultValue="overview" className="space-y-6">
           <div className="flex items-center justify-between">
             <TabsList>
