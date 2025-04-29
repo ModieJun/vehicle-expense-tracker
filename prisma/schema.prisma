@@ -27,4 +27,5 @@ enum ExpenseType {
   violation
   gasoline
   maintenance
+  toll
 }
