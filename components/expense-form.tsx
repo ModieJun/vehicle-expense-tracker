@@ -27,7 +27,7 @@ import { useToast } from "@/hooks/use-toast"
 
 const formSchema = z.object({
   amount: z.coerce.number().positive({ message: "Amount must be a positive number" }),
-  type: z.enum(["parking", "violation", "gasoline", "maintenance"]),
+  type: z.enum(["parking", "violation", "gasoline", "maintenance","toll"]),
   date: z.date(),
   description: z.string().optional(),
 })
@@ -128,6 +128,7 @@ export function ExpenseForm({ onSuccess }: ExpenseFormProps) {
                       <SelectItem value="violation">Traffic Violation</SelectItem>
                       <SelectItem value="gasoline">Gasoline</SelectItem>
                       <SelectItem value="maintenance">Maintenance</SelectItem>
+                      <SelectItem value="toll">Toll</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

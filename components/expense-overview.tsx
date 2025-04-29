@@ -246,6 +246,51 @@ export function ExpenseOverview() {
     }
   }
 
+  const getTollData = () => {
+    const currentYear = new Date().getFullYear()
+    const currentMonth = new Date().getMonth()
+
+    if (showMonthly) {
+      // Get daily data for current month
+      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
+      const dailyTotals = Array.from({ length: daysInMonth }, (_, i) => ({
+        name: String(i + 1),
+        amount: 0,
+      }))
+
+      // Sum expenses by day for current month
+      expenses
+        .filter((expense) => expense.type === "gasoline")
+        .forEach((expense) => {
+          const expenseDate = new Date(expense.date)
+          if (expenseDate.getFullYear() === currentYear && expenseDate.getMonth() === currentMonth) {
+            const day = expenseDate.getDate() - 1
+            dailyTotals[day].amount += Number(expense.amount)
+          }
+        })
+
+      return dailyTotals
+    } else {
+      // Original yearly data
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+      const monthlyTotals = months.map((month) => ({ name: month, amount: 0 }))
+
+      // Sum expenses by month
+      expenses
+        .filter((expense) => expense.type === "toll")
+        .forEach((expense) => {
+          const expenseDate = new Date(expense.date)
+          // Only include expenses from current year
+          if (expenseDate.getFullYear() === currentYear) {
+            const monthIndex = expenseDate.getMonth()
+            monthlyTotals[monthIndex].amount += Number(expense.amount)
+          }
+        })
+
+      return monthlyTotals
+    }
+  }
+
   // Get current month name for the title
   const getCurrentMonthName = () => {
     const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
@@ -306,6 +351,7 @@ export function ExpenseOverview() {
               <TabsTrigger value="parking">Parking</TabsTrigger>
               <TabsTrigger value="violations">Violations</TabsTrigger>
               <TabsTrigger value="gasoline">Gasoline</TabsTrigger>
+              <TabsTrigger value="toll">Toll</TabsTrigger>
             </TabsList>
             <TabsContent value="all" className="h-[300px]">
               {isLoading ? (
@@ -387,6 +433,27 @@ export function ExpenseOverview() {
                       label={{ value: 'HKD', angle: -90, position: 'insideLeft' }}
                     />
                     <Bar dataKey="amount" fill="#AE8F35" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </TabsContent>
+            <TabsContent value="toll" className="h-[300px]">
+              {isLoading ? (
+                <div className="flex h-full items-center justify-center">Loading data...</div>
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={getTollData()}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+                  >
+                    <XAxis 
+                      dataKey="name" 
+                      label={{ value: showMonthly ? 'Day' : 'Month', position: 'insideBottom', offset: -15 }}
+                    />
+                    <YAxis 
+                      label={{ value: 'HKD', angle: -90, position: 'insideLeft' }}
+                    />
+                    <Bar dataKey="amount" fill="#171299" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
