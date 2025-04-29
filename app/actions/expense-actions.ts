@@ -8,7 +8,7 @@ import { z } from "zod"
 // Schema for expense validation
 const expenseSchema = z.object({
   amount: z.coerce.number().positive(),
-  type: z.enum(["parking", "violation", "gasoline", "maintenance"]),
+  type: z.enum(["parking", "violation", "gasoline", "maintenance","toll"]),
   date: z.coerce.date(),
   description: z.string().optional(),
 })

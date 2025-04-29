@@ -1,16 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Legend, Tooltip } from "recharts"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { toast, useToast } from "@/hooks/use-toast"
-import { Expense } from "@/lib/prisma-fe-types"
+import { toast } from "@/hooks/use-toast"
+import type { Expense } from "@/lib/prisma-fe-types"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { getExpenses } from "@/app/actions/expense-actions"
-
 
 export function ExpenseOverview() {
   const [mounted, setMounted] = useState(false)
@@ -18,89 +16,102 @@ export function ExpenseOverview() {
   const [isLoading, setIsLoading] = useState(false)
   const [showMonthly, setShowMonthly] = useState(false)
 
-
-    // Fetch expenses
-    useEffect(() => {
-      async function fetchExpenses() {
-        setIsLoading(true)
-        try {
-          const result = await getExpenses()
-          if (result.success && result.data) {
-            setExpenses(result.data)
-          } else {
-            toast({
-              title: "Error",
-              description: result.error || "Failed to fetch expenses",
-              variant: "destructive",
-            })
-          }
-        } catch (error) {
+  // Fetch expenses
+  useEffect(() => {
+    async function fetchExpenses() {
+      setIsLoading(true)
+      try {
+        const result = await getExpenses()
+        if (result.success && result.data) {
+          setExpenses(result.data)
+        } else {
           toast({
             title: "Error",
-            description: "An unexpected error occurred",
+            description: result.error || "Failed to fetch expenses",
             variant: "destructive",
           })
-        } finally {
-          setIsLoading(false)
         }
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred",
+          variant: "destructive",
+        })
+      } finally {
+        setIsLoading(false)
       }
-  
-      fetchExpenses()
-    }, [toast])
-  
-    // Ensure component is mounted before rendering charts (for SSR compatibility)
-    useEffect(() => {
-      setMounted(true)
-    }, [])
-  
-    if (!mounted) {
-      return null
     }
-    
+
+    fetchExpenses()
+  }, [toast])
+
+  // Ensure component is mounted before rendering charts (for SSR compatibility)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return null
+  }
+
   // Calculate total expenses
   const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0)
 
   // Calculate expenses by type
-  const expensesByType = expenses.reduce((acc, expense) => {
-    acc[expense.type] = (acc[expense.type] || 0) + expense.amount
-    return acc
-  }, {} as Record<string, number>)
+  const expensesByType = expenses.reduce(
+    (acc, expense) => {
+      acc[expense.type] = (acc[expense.type] || 0) + expense.amount
+      return acc
+    },
+    {} as Record<string, number>,
+  )
 
-  // Prepare monthly chart data
-  const getMonthlyData = () => {
+  // Prepare monthly chart data with breakdown by expense type
+  const getMonthlyBreakdownData = () => {
     const currentYear = new Date().getFullYear()
     const currentMonth = new Date().getMonth()
 
     if (showMonthly) {
-      // Get daily data for current month
+      // Get daily data for current month with breakdown
       const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
       const dailyTotals = Array.from({ length: daysInMonth }, (_, i) => ({
         name: String(i + 1),
-        amount: 0,
+        parking: 0,
+        violation: 0,
+        gasoline: 0,
+        maintenance: 0,
+        toll: 0,
       }))
 
-      // Sum expenses by day for current month
+      // Sum expenses by day and type for current month
       expenses.forEach((expense) => {
         const expenseDate = new Date(expense.date)
         if (expenseDate.getFullYear() === currentYear && expenseDate.getMonth() === currentMonth) {
           const day = expenseDate.getDate() - 1
-          dailyTotals[day].amount += Number(expense.amount)
+          dailyTotals[day][expense.type] += Number(expense.amount)
         }
       })
 
       return dailyTotals
     } else {
-      // Original yearly data by month
+      // Monthly data with breakdown by expense type
       const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-      const monthlyTotals = months.map((month) => ({ name: month, amount: 0 }))
+      const monthlyTotals = months.map((month) => ({
+        name: month,
+        parking: 0,
+        violation: 0,
+        gasoline: 0,
+        maintenance: 0,
+        toll: 0,
+      }))
 
-      // Sum expenses by month
+      // Sum expenses by month and type
       expenses.forEach((expense) => {
         const expenseDate = new Date(expense.date)
         // Only include expenses from current year
         if (expenseDate.getFullYear() === currentYear) {
           const monthIndex = expenseDate.getMonth()
-          monthlyTotals[monthIndex].amount += Number(expense.amount)
+          monthlyTotals[monthIndex][expense.type] += Number(expense.amount)
         }
       })
 
@@ -108,148 +119,47 @@ export function ExpenseOverview() {
     }
   }
 
-  const monthlyData = getMonthlyData()
-
-  // Prepare filtered monthly data for each expense type
-  const getParkingData = () => {
-    const currentYear = new Date().getFullYear()
-    const currentMonth = new Date().getMonth()
-
-    if (showMonthly) {
-      // Get daily data for current month
-      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
-      const dailyTotals = Array.from({ length: daysInMonth }, (_, i) => ({
-        name: String(i + 1),
-        amount: 0,
-      }))
-
-      // Sum expenses by day for current month
-      expenses
-        .filter((expense) => expense.type === "parking")
-        .forEach((expense) => {
-          const expenseDate = new Date(expense.date)
-          if (expenseDate.getFullYear() === currentYear && expenseDate.getMonth() === currentMonth) {
-            const day = expenseDate.getDate() - 1
-            dailyTotals[day].amount += Number(expense.amount)
-          }
-        })
-
-      return dailyTotals
-    } else {
-      // Original yearly data
-      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-      const monthlyTotals = months.map((month) => ({ name: month, amount: 0 }))
-
-      // Sum expenses by month
-      expenses
-        .filter((expense) => expense.type === "parking")
-        .forEach((expense) => {
-          const expenseDate = new Date(expense.date)
-          // Only include expenses from current year
-          if (expenseDate.getFullYear() === currentYear) {
-            const monthIndex = expenseDate.getMonth()
-            monthlyTotals[monthIndex].amount += Number(expense.amount)
-          }
-        })
-
-      return monthlyTotals
-    }
-  }
-
-  const getViolationsData = () => {
-    const currentYear = new Date().getFullYear()
-    const currentMonth = new Date().getMonth()
-
-    if (showMonthly) {
-      // Get daily data for current month
-      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
-      const dailyTotals = Array.from({ length: daysInMonth }, (_, i) => ({
-        name: String(i + 1),
-        amount: 0,
-      }))
-
-      // Sum expenses by day for current month
-      expenses
-        .filter((expense) => expense.type === "violation")
-        .forEach((expense) => {
-          const expenseDate = new Date(expense.date)
-          if (expenseDate.getFullYear() === currentYear && expenseDate.getMonth() === currentMonth) {
-            const day = expenseDate.getDate() - 1
-            dailyTotals[day].amount += Number(expense.amount)
-          }
-        })
-
-      return dailyTotals
-    } else {
-      // Original yearly data
-      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-      const monthlyTotals = months.map((month) => ({ name: month, amount: 0 }))
-
-      // Sum expenses by month
-      expenses
-        .filter((expense) => expense.type === "violation")
-        .forEach((expense) => {
-          const expenseDate = new Date(expense.date)
-          // Only include expenses from current year
-          if (expenseDate.getFullYear() === currentYear) {
-            const monthIndex = expenseDate.getMonth()
-            monthlyTotals[monthIndex].amount += Number(expense.amount)
-          }
-        })
-
-      return monthlyTotals
-    }
-  }
-
-  const getGasolineData = () => {
-    const currentYear = new Date().getFullYear()
-    const currentMonth = new Date().getMonth()
-
-    if (showMonthly) {
-      // Get daily data for current month
-      const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
-      const dailyTotals = Array.from({ length: daysInMonth }, (_, i) => ({
-        name: String(i + 1),
-        amount: 0,
-      }))
-
-      // Sum expenses by day for current month
-      expenses
-        .filter((expense) => expense.type === "gasoline")
-        .forEach((expense) => {
-          const expenseDate = new Date(expense.date)
-          if (expenseDate.getFullYear() === currentYear && expenseDate.getMonth() === currentMonth) {
-            const day = expenseDate.getDate() - 1
-            dailyTotals[day].amount += Number(expense.amount)
-          }
-        })
-
-      return dailyTotals
-    } else {
-      // Original yearly data
-      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-      const monthlyTotals = months.map((month) => ({ name: month, amount: 0 }))
-
-      // Sum expenses by month
-      expenses
-        .filter((expense) => expense.type === "gasoline")
-        .forEach((expense) => {
-          const expenseDate = new Date(expense.date)
-          // Only include expenses from current year
-          if (expenseDate.getFullYear() === currentYear) {
-            const monthIndex = expenseDate.getMonth()
-            monthlyTotals[monthIndex].amount += Number(expense.amount)
-          }
-        })
-
-      return monthlyTotals
-    }
-  }
+  const monthlyBreakdownData = getMonthlyBreakdownData()
 
   // Get current month name for the title
   const getCurrentMonthName = () => {
-    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    const months = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ]
     return months[new Date().getMonth()]
+  }
+
+  // Custom tooltip for the chart
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      const total = payload.reduce((sum: number, entry: any) => sum + entry.value, 0)
+      return (
+        <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
+          <p className="font-medium">{showMonthly ? `Day ${label}` : label}</p>
+          <p className="text-sm text-muted-foreground mb-2">Total: ${total.toFixed(2)}</p>
+          {payload.map(
+            (entry: any, index: number) =>
+              entry.value > 0 && (
+                <p key={index} className="text-sm" style={{ color: entry.color }}>
+                  {entry.dataKey.charAt(0).toUpperCase() + entry.dataKey.slice(1)}: ${entry.value.toFixed(2)}
+                </p>
+              ),
+          )}
+        </div>
+      )
+    }
+    return null
   }
 
   return (
@@ -271,6 +181,9 @@ export function ExpenseOverview() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">${amount.toFixed(2)}</div>
+              <p className="text-xs text-muted-foreground">
+                {totalExpenses > 0 ? ((amount / totalExpenses) * 100).toFixed(1) : "0"}% of total
+              </p>
             </CardContent>
           </Card>
         ))}
@@ -280,118 +193,44 @@ export function ExpenseOverview() {
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle>
-              {showMonthly ? `${getCurrentMonthName()} Expenses` : "Monthly Expenses"}
+              {showMonthly ? `${getCurrentMonthName()} Expense Breakdown` : "Monthly Expense Breakdown"}
             </CardTitle>
             <CardDescription>
-              {showMonthly 
-                ? `Daily expenses for ${getCurrentMonthName()} ${new Date().getFullYear()}`
-                : "View your vehicle expenses over time"}
+              {showMonthly
+                ? `Daily breakdown by expense type for ${getCurrentMonthName()} ${new Date().getFullYear()}`
+                : "Monthly breakdown by expense type"}
             </CardDescription>
           </div>
           <div className="flex items-center space-x-2">
             <Label htmlFor="view-toggle" className="text-sm">
               {showMonthly ? "Daily View" : "Monthly View"}
             </Label>
-            <Switch
-              id="view-toggle"
-              checked={showMonthly}
-              onCheckedChange={setShowMonthly}
-            />
+            <Switch id="view-toggle" checked={showMonthly} onCheckedChange={setShowMonthly} />
           </div>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="all">
-            <TabsList className="mb-4">
-              <TabsTrigger value="all">All Expenses</TabsTrigger>
-              <TabsTrigger value="parking">Parking</TabsTrigger>
-              <TabsTrigger value="violations">Violations</TabsTrigger>
-              <TabsTrigger value="gasoline">Gasoline</TabsTrigger>
-            </TabsList>
-            <TabsContent value="all" className="h-[300px]">
-              {isLoading ? (
-                <div className="flex h-full items-center justify-center">Loading data...</div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={monthlyData}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
-                  >
-                    <XAxis 
-                      dataKey="name" 
-                      label={{ value: showMonthly ? 'Day' : 'Month', position: 'insideBottom', offset: -15 }}
-                    />
-                    <YAxis 
-                      label={{ value: 'HKD', angle: -90, position: 'insideLeft' }}
-                    />
-                    <Bar dataKey="amount" fill="#2E5374" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </TabsContent>
-            <TabsContent value="parking" className="h-[300px]">
-              {isLoading ? (
-                <div className="flex h-full items-center justify-center">Loading data...</div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={getParkingData()}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
-                  >
-                    <XAxis 
-                      dataKey="name" 
-                      label={{ value: showMonthly ? 'Day' : 'Month', position: 'insideBottom', offset: -15 }}
-                    />
-                    <YAxis 
-                      label={{ value: 'HKD', angle: -90, position: 'insideLeft' }}
-                    />
-                    <Bar dataKey="amount" fill="#1C4E80" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </TabsContent>
-            <TabsContent value="violations" className="h-[300px]">
-              {isLoading ? (
-                <div className="flex h-full items-center justify-center">Loading data...</div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={getViolationsData()}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
-                  >
-                    <XAxis 
-                      dataKey="name" 
-                      label={{ value: showMonthly ? 'Day' : 'Month', position: 'insideBottom', offset: -15 }}
-                    />
-                    <YAxis 
-                      label={{ value: 'HKD', angle: -90, position: 'insideLeft' }}
-                    />
-                    <Bar dataKey="amount" fill="#9B2226" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </TabsContent>
-            <TabsContent value="gasoline" className="h-[300px]">
-              {isLoading ? (
-                <div className="flex h-full items-center justify-center">Loading data...</div>
-              ) : (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={getGasolineData()}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
-                  >
-                    <XAxis 
-                      dataKey="name" 
-                      label={{ value: showMonthly ? 'Day' : 'Month', position: 'insideBottom', offset: -15 }}
-                    />
-                    <YAxis 
-                      label={{ value: 'HKD', angle: -90, position: 'insideLeft' }}
-                    />
-                    <Bar dataKey="amount" fill="#AE8F35" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-            </TabsContent>
-          </Tabs>
+          <div className="h-[400px]">
+            {isLoading ? (
+              <div className="flex h-full items-center justify-center">Loading data...</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyBreakdownData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                  <XAxis
+                    dataKey="name"
+                    label={{ value: showMonthly ? "Day" : "Month", position: "insideBottom", offset: -10 }}
+                  />
+                  <YAxis label={{ value: "Amount ($)", angle: -90, position: "insideLeft" }} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Legend wrapperStyle={{ paddingTop: "20px" }} />
+                  <Bar dataKey="parking" stackId="a" fill="#1C4E80" name="Parking" />
+                  <Bar dataKey="violation" stackId="a" fill="#9B2226" name="Violation" />
+                  <Bar dataKey="gasoline" stackId="a" fill="#AE8F35" name="Gasoline" />
+                  <Bar dataKey="maintenance" stackId="a" fill="#2E5374" name="Maintenance" />
+                  <Bar dataKey="toll" stackId="a" fill="#171299" name="Toll" />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

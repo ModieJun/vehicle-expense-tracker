@@ -6,7 +6,8 @@ export enum ExpenseType {
   PARKING = 'parking',
   VIOLATION = 'violation',
   GASOLINE = 'gasoline',
-  MAINTENANCE = 'maintenance'
+  MAINTENANCE = 'maintenance',
+  TOLL   = 'toll'
 }
 
 export interface Expense {
